@@ -40,8 +40,15 @@ endif()
 set(ONNX_RUNTIME_PATH "/opt/onnxruntime" CACHE STRING "ONNX Runtime directory path")
 set(CUDA_LIBRARIES_PATH "/opt/cuda11" CACHE STRING "CUDA libraries path compatible with the ONNX Runtime")
 
+option(USE_CUDA "Enable CUDA support" ON)
+
 # Create Onnxruntime imported target
 add_library(onnxruntime SHARED IMPORTED)
+if(USE_CUDA)
+    target_compile_definitions(objdetex PRIVATE OBJDETEX_USE_CUDA=1)
+else()
+    target_compile_definitions(objdetex PRIVATE OBJDETEX_USE_CUDA=0)
+endif()
 if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
 	set(ONNX_IMPORTED_LOCATION "${ONNX_RUNTIME_PATH}/lib/onnxruntime.dll")
 	set(ONNX_IMPORTED_IMPLIB "${ONNX_RUNTIME_PATH}/lib/onnxruntime.lib")
@@ -91,8 +98,10 @@ target_include_directories(objdetex PUBLIC
     "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/>"
     "$<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/gen/>"
     "$<INSTALL_INTERFACE:${CMAKE_INSTALL_PREFIX}/include/>")
-target_link_directories(objdetex PUBLIC
-    "${CUDA_LIBRARIES_PATH}/lib64")
+if(USE_CUDA)
+    target_link_directories(objdetex PUBLIC
+        "${CUDA_LIBRARIES_PATH}/lib64")
+endif()
 target_link_libraries(objdetex PRIVATE
     onnxruntime)
 

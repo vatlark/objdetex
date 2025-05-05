@@ -80,7 +80,15 @@ const char *classNames[] = {
 Ort::SessionOptions createOptions(int64_t cuda_device)
 {
     Ort::SessionOptions options;
-    if (cuda_device >= 0) Ort::ThrowOnError(OrtSessionOptionsAppendExecutionProvider_CUDA(options, cuda_device));
+    
+    if (cuda_device >= 0) {
+        #if OBJDETEX_USE_CUDA
+            Ort::ThrowOnError(OrtSessionOptionsAppendExecutionProvider_CUDA(options, cuda_device));
+        #else
+            printf("ERROR: objdetex was compiled without cuda support but cuda_device = %ld");
+            exit(1);
+        #endif
+    }
     return options;
 }
 
